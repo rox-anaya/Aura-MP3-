@@ -3,7 +3,7 @@ import {
   LuHouse, LuLibrary, LuSearch, LuSlidersHorizontal, LuPlay, LuPause, LuSkipForward, LuMusic, 
   LuX, LuFileAudio, LuFileText, LuShield, LuInfo, LuChevronRight, LuSkipBack, LuRepeat, LuShuffle, 
   LuHeart, LuFolder, LuClock, LuPlus, LuDownload, LuSettings, LuHeartHandshake, 
-  LuArrowLeft, LuPalette, LuZap, LuGlobe, LuListMusic, LuRotateCcw, LuHeadphones
+  LuArrowLeft, LuPalette, LuListMusic, LuRotateCcw, LuHeadphones
 } from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
 
