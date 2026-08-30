@@ -58,6 +58,10 @@ export default function App() {
   const [activeSubPage, setActiveSubPage] = useState<null | "converter" | "support" | "settings" | "about" | "privacy" | "terms" | "customEq">(null);
 
   const [songs, setSongs] = useState<Song[]>(() => {
+    const saved = localStorage.getItem("aura_songs");
+    return saved ? JSON.parse(saved) : [];
+  });
+
   useEffect(() => {
     const fetchNativeTracks = async () => {
       try {
@@ -66,14 +70,11 @@ export default function App() {
           setSongs(res.songs);
         }
       } catch (e) {
-        console.log("Not running in native container or permissions pending");
+        console.log("Not running in native container");
       }
     };
     fetchNativeTracks();
   }, []);
-    const saved = localStorage.getItem("aura_songs");
-    return saved ? JSON.parse(saved) : [];
-  });
 
   const [recentlyPlayed, setRecentlyPlayed] = useState<Song[]>(() => {
     const saved = localStorage.getItem("aura_recent");
