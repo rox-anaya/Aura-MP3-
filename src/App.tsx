@@ -6,6 +6,8 @@ import {
   LuArrowLeft, LuPalette, LuListMusic, LuRotateCcw, LuHeadphones
 } from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
+import { registerPlugin } from "@capacitor/core";
+const MediaScanner = registerPlugin<any>("MediaScanner");
 
 export interface Song {
   id: string;
@@ -56,6 +58,19 @@ export default function App() {
   const [activeSubPage, setActiveSubPage] = useState<null | "converter" | "support" | "settings" | "about" | "privacy" | "terms" | "customEq">(null);
 
   const [songs, setSongs] = useState<Song[]>(() => {
+  useEffect(() => {
+    const fetchNativeTracks = async () => {
+      try {
+        const res = await MediaScanner.getLocalSongs();
+        if (res && res.songs && res.songs.length > 0) {
+          setSongs(res.songs);
+        }
+      } catch (e) {
+        console.log("Not running in native container or permissions pending");
+      }
+    };
+    fetchNativeTracks();
+  }, []);
     const saved = localStorage.getItem("aura_songs");
     return saved ? JSON.parse(saved) : [];
   });
