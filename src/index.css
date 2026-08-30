@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+  --color-aura-bg: #0b0b0b;
+  --color-aura-card: #181818;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--color-aura-bg);
+  color: white;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+@utility glass-panel {
+  background-color: rgba(24, 24, 24, 0.75);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+}
