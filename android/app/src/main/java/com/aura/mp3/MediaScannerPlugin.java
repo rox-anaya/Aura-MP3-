@@ -50,7 +50,6 @@ public class MediaScannerPlugin extends Plugin {
         JSArray songsList = new JSArray();
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         
-        // Filter out ringtones, notifications, podcasts, and audio clips shorter than 30 seconds (30000ms)
         String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0 AND " 
                          + MediaStore.Audio.Media.DURATION + " >= 30000";
         String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
@@ -76,7 +75,6 @@ public class MediaScannerPlugin extends Plugin {
                 while (cursor.moveToNext()) {
                     String path = cursor.getString(dataColumn);
                     
-                    // Skip junk folders (WhatsApp, Telegram, Notifications, Recordings, Cache)
                     if (path != null) {
                         String lowerPath = path.toLowerCase();
                         if (lowerPath.contains("/whatsapp/") ||
@@ -96,7 +94,13 @@ public class MediaScannerPlugin extends Plugin {
                     long duration = cursor.getLong(durationColumn);
                     String album = cursor.getString(albumColumn);
 
-                    Uri contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
+                    // Create Capacitor-friendly WebView URL (_capacitor_file_)
+                    String playableUrl = "";
+                    if (path != null && !path.isEmpty()) {
+                        playableUrl = "http://localhost/_capacitor_file_" + path;
+                    } else {
+                        playableUrl = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id).toString();
+                    }
 
                     JSObject song = new JSObject();
                     song.put("id", String.valueOf(id));
@@ -104,7 +108,7 @@ public class MediaScannerPlugin extends Plugin {
                     song.put("artist", (artist == null || artist.equals("<unknown>")) ? "Unknown Artist" : artist);
                     song.put("album", album != null ? album : "Unknown Album");
                     song.put("duration", duration / 1000);
-                    song.put("url", contentUri.toString());
+                    song.put("url", playableUrl);
 
                     songsList.put(song);
                 }

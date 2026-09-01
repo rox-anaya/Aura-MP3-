@@ -382,7 +382,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen text-white pb-36 bg-[#0E0E0E]">
+    <div className="flex flex-col min-h-screen text-white pb-36 bg-[#0E0E0E] w-full max-w-full overflow-x-hidden">
       <audio ref={audioRef} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleTimeUpdate} onEnded={handleEnded} preload="auto" />
       <input type="file" ref={fileInputRef} onChange={handleImportFiles} multiple accept="audio/*" className="hidden" />
 
@@ -802,7 +802,7 @@ export default function App() {
                   <div className="flex items-center gap-4">
                     <div className="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center"><LuMusic size={20} /></div>
                     <div>
-                      <h4 className="font-semibold text-sm text-white">{song.title}</h4>
+                      <h4 className="font-semibold text-sm text-white truncate max-w-[220px]">{song.title}</h4>
                       <p className="text-xs text-gray-400 mt-0.5">{song.artist}</p>
                     </div>
                   </div>
@@ -828,7 +828,7 @@ export default function App() {
                   <div className="flex items-center gap-4">
                     <div className="w-11 h-11 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center"><LuMusic size={20} /></div>
                     <div>
-                      <h4 className="font-semibold text-sm text-white">{song.title}</h4>
+                      <h4 className="font-semibold text-sm text-white truncate max-w-[220px]">{song.title}</h4>
                       <p className="text-xs text-gray-400 mt-0.5">{song.artist}</p>
                     </div>
                   </div>
@@ -895,7 +895,7 @@ export default function App() {
                     <div className="flex items-center gap-4">
                       <div className="w-11 h-11 rounded-xl bg-white/5 flex items-center justify-center text-gray-400"><LuMusic size={20} /></div>
                       <div>
-                        <h4 className="font-semibold text-sm text-white">{song.title}</h4>
+                        <h4 className="font-semibold text-sm text-white truncate max-w-[220px]">{song.title}</h4>
                         <p className="text-xs text-gray-500 mt-0.5">{song.artist}</p>
                       </div>
                     </div>
@@ -930,7 +930,7 @@ export default function App() {
                     <div className="flex items-center gap-4">
                       <div className="w-11 h-11 rounded-xl bg-white/5 flex items-center justify-center text-gray-400"><LuMusic size={20} /></div>
                       <div>
-                        <h4 className="font-semibold text-sm text-white">{song.title}</h4>
+                        <h4 className="font-semibold text-sm text-white truncate max-w-[220px]">{song.title}</h4>
                         <p className="text-xs text-gray-500 mt-0.5">{song.artist}</p>
                       </div>
                     </div>
