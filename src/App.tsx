@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { useState, useEffect, useRef } from "react";
 import { 
   LuHouse, LuLibrary, LuSearch, LuSlidersHorizontal, LuPlay, LuPause, LuSkipForward, LuMusic, 
@@ -215,8 +216,19 @@ export default function App() {
     setRecentlyPlayed((prev) => [song, ...prev.filter((s) => s.id !== song.id)].slice(0, 50));
 
     if (audioRef.current) {
-      audioRef.current.src = song.url;
-      audioRef.current.play().catch(() => {});
+      let finalUrl = song.url;
+      if (typeof window !== 'undefined' && (window as any).Capacitor) {
+        if (!finalUrl.startsWith('http') && !finalUrl.startsWith('content')) {
+          finalUrl = Capacitor.convertFileSrc(finalUrl);
+        }
+      }
+      audioRef.current.src = finalUrl;
+      audioRef.current.load();
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch((err) => {
+        console.error("Audio playback error:", err);
+      });
     }
   };
 

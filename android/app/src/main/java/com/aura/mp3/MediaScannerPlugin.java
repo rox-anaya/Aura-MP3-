@@ -94,10 +94,10 @@ public class MediaScannerPlugin extends Plugin {
                     long duration = cursor.getLong(durationColumn);
                     String album = cursor.getString(albumColumn);
 
-                    // Create Capacitor-friendly WebView URL (_capacitor_file_)
+                    // Capacitor bridge file format
                     String playableUrl = "";
                     if (path != null && !path.isEmpty()) {
-                        playableUrl = "http://localhost/_capacitor_file_" + path;
+                        playableUrl = "https://localhost/_capacitor_file_" + path;
                     } else {
                         playableUrl = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id).toString();
                     }
