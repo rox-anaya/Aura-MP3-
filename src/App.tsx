@@ -82,6 +82,7 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
   const [playlists, setPlaylists] = useState<Playlist[]>(() => {
     const saved = localStorage.getItem("aura_playlists");
     return saved ? JSON.parse(saved) : [
@@ -302,6 +303,40 @@ export default function App() {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
+  const toggleFavorite = (songId: string) => {
+    setPlaylists((prev) =>
+      prev.map((pl) => {
+        if (pl.id === "fav") {
+          const exists = pl.songIds.includes(songId);
+          return {
+            ...pl,
+            songIds: exists ? pl.songIds.filter((id) => id !== songId) : [...pl.songIds, songId]
+          };
+        }
+        return pl;
+      })
+    );
+  };
+
+  const removeSongFromPlaylist = (playlistId: string, songId: string) => {
+    setPlaylists((prev) =>
+      prev.map((pl) => {
+        if (pl.id === playlistId) {
+          return {
+            ...pl,
+            songIds: pl.songIds.filter((id) => id !== songId)
+          };
+        }
+        return pl;
+      })
+    );
+    if (selectedPlaylist && selectedPlaylist.id === playlistId) {
+      setSelectedPlaylist((prev) =>
+        prev ? { ...prev, songIds: prev.songIds.filter((id) => id !== songId) } : null
+      );
+    }
   };
 
   const togglePlay = () => {
@@ -780,7 +815,7 @@ export default function App() {
 
               <div className="space-y-2">
                 {playlists.map((pl) => (
-                  <div key={pl.id} className="p-3.5 rounded-2xl bg-[#161616] border border-white/5 flex items-center justify-between cursor-pointer hover:bg-[#1f1f1f] transition">
+                  <div key={pl.id} onClick={() => setSelectedPlaylist(pl)} className="p-3.5 rounded-2xl bg-[#161616] border border-white/5 flex items-center justify-between cursor-pointer hover:bg-[#1f1f1f] active:scale-[0.99] transition">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
                         {pl.isPinned ? <LuHeart size={18} className="text-red-500 fill-red-500" /> : <LuListMusic size={18} className="text-gray-400" />}
@@ -1051,7 +1086,23 @@ export default function App() {
                   <h2 className="text-2xl font-bold text-white mb-1">{currentSong?.title || "No Track Selected"}</h2>
                   <p className="text-md" style={{ color: currentTheme.color }}>{currentSong?.artist || "Aura MP3"}</p>
                 </div>
-                <button className="p-3 text-gray-400 hover:text-white transition"><LuHeart size={26} /></button>
+                <button
+                onClick={() => currentSong && toggleFavorite(currentSong.id)}
+                className={`p-3 transition ${
+                  playlists.find((p) => p.id === "fav")?.songIds.includes(currentSong?.id || "")
+                    ? "text-red-500 scale-110"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                <LuHeart
+                  size={26}
+                  className={
+                    playlists.find((p) => p.id === "fav")?.songIds.includes(currentSong?.id || "")
+                      ? "fill-red-500"
+                      : ""
+                  }
+                />
+              </button>
               </div>
 
               <div className="w-full mb-6">
@@ -1087,6 +1138,80 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+
+        {/* Playlist Detail View Modal */}
+        {selectedPlaylist && (
+          <div className="fixed inset-0 z-40 bg-[#0E0E0E] flex flex-col p-6 overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <button
+                onClick={() => setSelectedPlaylist(null)}
+                className="p-2.5 rounded-full bg-white/5 text-gray-300 hover:text-white transition"
+              >
+                <LuChevronLeft size={22} />
+              </button>
+              <h2 className="text-lg font-bold text-white tracking-wide">{selectedPlaylist.name}</h2>
+              <div className="w-8" />
+            </div>
+
+            <div className="p-5 rounded-3xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 mb-6 flex items-center gap-4">
+              <div
+                className="w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg"
+                style={{ backgroundColor: currentTheme.color }}
+              >
+                {selectedPlaylist.isPinned ? <LuHeart size={28} className="fill-current" /> : <LuListMusic size={28} />}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">{selectedPlaylist.name}</h3>
+                <p className="text-xs text-gray-400 mt-1 font-mono">
+                  {selectedPlaylist.songIds.length} {selectedPlaylist.songIds.length === 1 ? "track" : "tracks"}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 pb-32">
+              {songs.filter((s) => selectedPlaylist.songIds.includes(s.id)).length === 0 ? (
+                <div className="text-center py-16 text-gray-500">
+                  <LuListMusic size={36} className="mx-auto mb-3 opacity-40" />
+                  <p className="text-sm font-semibold text-gray-400">No tracks in this playlist</p>
+                  <p className="text-xs text-gray-600 mt-1">Tap the heart on any song to add it here</p>
+                </div>
+              ) : (
+                songs
+                  .filter((s) => selectedPlaylist.songIds.includes(s.id))
+                  .map((song) => (
+                    <div
+                      key={song.id}
+                      onClick={() => playSong(song)}
+                      className="p-3.5 rounded-2xl bg-[#161616] border border-white/5 flex items-center justify-between cursor-pointer hover:bg-[#1f1f1f] transition"
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div
+                          className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: `${currentTheme.color}20`, color: currentTheme.color }}
+                        >
+                          <LuMusic size={20} />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-semibold text-sm text-white truncate max-w-[200px]">{song.title}</h4>
+                          <p className="text-xs text-gray-500 mt-0.5 truncate max-w-[200px]">{song.artist}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeSongFromPlaylist(selectedPlaylist.id, song.id);
+                        }}
+                        className="p-2 text-gray-500 hover:text-red-400 transition"
+                      >
+                        <LuTrash2 size={18} />
+                      </button>
+                    </div>
+                  ))
+              )}
+            </div>
+          </div>
+        )}
 
       {/* Mini Player */}
       <AnimatePresence>
