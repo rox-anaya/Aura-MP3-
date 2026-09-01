@@ -90,6 +90,10 @@ export default function App() {
 
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isShuffle, setIsShuffle] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<"off" | "all" | "one">("off");
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
 
@@ -216,6 +220,78 @@ export default function App() {
     }
   };
 
+  const handleNext = () => {
+    if (!songs || songs.length === 0) return;
+    if (isShuffle) {
+      const randomIndex = Math.floor(Math.random() * songs.length);
+      playSong(songs[randomIndex]);
+      return;
+    }
+    const currentIndex = songs.findIndex((s) => s.id === currentSong?.id);
+    if (currentIndex === -1 || currentIndex === songs.length - 1) {
+      playSong(songs[0]);
+    } else {
+      playSong(songs[currentIndex + 1]);
+    }
+  };
+
+  const handlePrev = () => {
+    if (!songs || songs.length === 0) return;
+    if (currentTime > 3 && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      return;
+    }
+    const currentIndex = songs.findIndex((s) => s.id === currentSong?.id);
+    if (currentIndex <= 0) {
+      playSong(songs[songs.length - 1]);
+    } else {
+      playSong(songs[currentIndex - 1]);
+    }
+  };
+
+  const toggleShuffle = () => {
+    setIsShuffle(!isShuffle);
+  };
+
+  const toggleRepeat = () => {
+    if (repeatMode === "off") setRepeatMode("all");
+    else if (repeatMode === "all") setRepeatMode("one");
+    else setRepeatMode("off");
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = parseFloat(e.target.value);
+    setCurrentTime(time);
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+      setDuration(audioRef.current.duration || 0);
+    }
+  };
+
+  const handleEnded = () => {
+    if (repeatMode === "one") {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => {});
+      }
+    } else {
+      handleNext();
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    if (isNaN(seconds) || seconds <= 0) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
   const togglePlay = () => {
     if (!currentSong && songs.length > 0) {
       playSong(songs[0]);
@@ -307,7 +383,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col min-h-screen text-white pb-36 bg-[#0E0E0E]">
-      <audio ref={audioRef} onEnded={() => setIsPlaying(false)} preload="none" />
+      <audio ref={audioRef} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleTimeUpdate} onEnded={handleEnded} preload="auto" />
       <input type="file" ref={fileInputRef} onChange={handleImportFiles} multiple accept="audio/*" className="hidden" />
 
       {/* Static Header */}
@@ -966,9 +1042,19 @@ export default function App() {
                 <button className="p-3 text-gray-400 hover:text-white transition"><LuHeart size={26} /></button>
               </div>
 
-              <div className="w-full mb-8">
-                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden mb-2">
-                  <div className="h-full rounded-full transition-all duration-300" style={{ width: isPlaying ? '35%' : '0%', backgroundColor: currentTheme.color }} />
+              <div className="w-full mb-6">
+                <input
+                  type="range"
+                  min="0"
+                  max={duration || 100}
+                  value={currentTime}
+                  onChange={handleSeek}
+                  className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                  style={{ accentColor: currentTheme.color }}
+                />
+                <div className="flex justify-between text-[11px] text-gray-400 font-mono mt-1.5">
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{formatTime(duration)}</span>
                 </div>
               </div>
 
@@ -1018,14 +1104,14 @@ export default function App() {
                 </div>
 
                 <div className="flex items-center gap-1">
-                  <button onClick={(e) => e.stopPropagation()} className="p-2 text-gray-400 hover:text-white transition"><LuSkipBack size={18} className="fill-current" /></button>
+                  <button onClick={(e) => { e.stopPropagation(); handlePrev(); }} className="p-2 text-gray-400 hover:text-white transition active:scale-90"><LuSkipBack size={18} className="fill-current" /></button>
                   <button 
                     onClick={(e) => { e.stopPropagation(); togglePlay(); }} 
                     className="p-2 text-white hover:text-gray-200 transition"
                   >
                     {isPlaying ? <LuPause size={22} className="fill-current" /> : <LuPlay size={22} className="fill-current" />}
                   </button>
-                  <button onClick={(e) => e.stopPropagation()} className="p-2 text-gray-400 hover:text-white transition"><LuSkipForward size={18} className="fill-current" /></button>
+                  <button onClick={(e) => { e.stopPropagation(); handleNext(); }} className="p-2 text-gray-400 hover:text-white transition active:scale-90"><LuSkipForward size={18} className="fill-current" /></button>
                 </div>
               </div>
             </div>
