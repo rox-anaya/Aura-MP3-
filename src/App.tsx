@@ -95,6 +95,7 @@ export default function App() {
   const [isShuffle, setIsShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState<"off" | "all" | "one">("off");
   const [currentTime, setCurrentTime] = useState(0);
+  const [volume, setVolume] = useState(1);
   const [duration, setDuration] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
@@ -1160,7 +1161,26 @@ export default function App() {
       </AnimatePresence>
 
 
-        {/* Playlist Detail View Modal */}
+        
+            {/* Volume Controller */}
+            <div className="flex items-center gap-3 w-full px-4 pt-2 opacity-80 hover:opacity-100 transition">
+              <span className="text-xs text-gray-500 font-mono">Vol</span>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={volume}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  setVolume(val);
+                  if (audioRef.current) audioRef.current.volume = val;
+                }}
+                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-white"
+              />
+            </div>
+
+      {/* Playlist Detail View Modal */}
         {selectedPlaylist && (
           <div className="fixed inset-0 z-40 bg-[#0E0E0E] flex flex-col p-6 overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
@@ -1184,7 +1204,7 @@ export default function App() {
               <div>
                 <h3 className="text-xl font-bold text-white">{selectedPlaylist.name}</h3>
                 <p className="text-xs text-gray-400 mt-1 font-mono">
-                  {selectedPlaylist.songIds.length} {selectedPlaylist.songIds.length === 1 ? "track" : "tracks"}
+                  {(selectedPlaylist?.songIds || []).length} {(selectedPlaylist?.songIds || []).length === 1 ? "track" : "tracks"}
                 </p>
               </div>
             </div>
