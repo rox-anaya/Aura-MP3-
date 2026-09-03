@@ -339,6 +339,26 @@ export default function App() {
     }
   };
 
+  
+  const [selectedGroup, setSelectedGroup] = useState<{ type: "artist" | "album"; name: string } | null>(null);
+
+  const playNextSong = () => {
+    if (!songs.length || !currentSong) return;
+    if (isShuffle) {
+      const rand = Math.floor(Math.random() * songs.length);
+      playSong(songs[rand]);
+      return;
+    }
+    const idx = songs.findIndex((s) => s.id === currentSong.id);
+    playSong(songs[(idx + 1) % songs.length]);
+  };
+
+  const playPrevSong = () => {
+    if (!songs.length || !currentSong) return;
+    const idx = songs.findIndex((s) => s.id === currentSong.id);
+    playSong(songs[(idx - 1 + songs.length) % songs.length]);
+  };
+
   const togglePlay = () => {
     if (!currentSong && songs.length > 0) {
       playSong(songs[0]);
@@ -1122,8 +1142,8 @@ export default function App() {
               </div>
 
               <div className="w-full flex justify-between items-center px-2">
-                <button className="text-gray-400 hover:text-white transition"><LuShuffle size={24} /></button>
-                <button className="text-white hover:text-gray-300 transition"><LuSkipBack size={32} className="fill-current" /></button>
+                <button onClick={() => setIsShuffle(!isShuffle)} className={`transition ${isShuffle ? "scale-110" : "text-gray-400 hover:text-white"}`} style={isShuffle ? { color: currentTheme.color } : {}}><LuShuffle size={24} /></button>
+                <button onClick={playPrevSong} className="text-white hover:text-gray-300 transition active:scale-90"><LuSkipBack size={32} className="fill-current" /></button>
                 <button 
                   onClick={togglePlay} 
                   className="w-20 h-20 rounded-full flex items-center justify-center text-white shadow-lg transition-transform active:scale-95"
@@ -1131,8 +1151,8 @@ export default function App() {
                 >
                   {isPlaying ? <LuPause size={32} className="fill-current text-black" /> : <LuPlay size={32} className="fill-current ml-1 text-black" />}
                 </button>
-                <button className="text-white hover:text-gray-300 transition"><LuSkipForward size={32} className="fill-current" /></button>
-                <button className="text-gray-400 hover:text-white transition"><LuRepeat size={24} /></button>
+                <button onClick={playNextSong} className="text-white hover:text-gray-300 transition active:scale-90"><LuSkipForward size={32} className="fill-current" /></button>
+                <button onClick={() => setRepeatMode(repeatMode === "off" ? "all" : repeatMode === "all" ? "one" : "off")} className={`transition ${repeatMode !== "off" ? "scale-110" : "text-gray-400 hover:text-white"}`} style={repeatMode !== "off" ? { color: currentTheme.color } : {}}>{repeatMode === "one" ? <LuRepeat1 size={24} /> : <LuRepeat size={24} />}</button>
               </div>
             </div>
           </motion.div>
@@ -1170,7 +1190,7 @@ export default function App() {
             </div>
 
             <div className="space-y-2 pb-32">
-              {songs.filter((s) => selectedPlaylist.songIds.includes(s.id)).length === 0 ? (
+              {songs.filter((s) => (selectedPlaylist.songIds || []).includes(s.id)).length === 0 ? (
                 <div className="text-center py-16 text-gray-500">
                   <LuListMusic size={36} className="mx-auto mb-3 opacity-40" />
                   <p className="text-sm font-semibold text-gray-400">No tracks in this playlist</p>
@@ -1178,7 +1198,7 @@ export default function App() {
                 </div>
               ) : (
                 songs
-                  .filter((s) => selectedPlaylist.songIds.includes(s.id))
+                  .filter((s) => (selectedPlaylist.songIds || []).includes(s.id))
                   .map((song) => (
                     <div
                       key={song.id}
